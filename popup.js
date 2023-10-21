@@ -12,17 +12,25 @@ document.addEventListener('DOMContentLoaded', function() {
   addLinkButton.addEventListener('click', function() {
     const url = linkInput.value;
     if (url) {
+      const linkObj = { url: url };
+
       chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
         const tabId = tabs[0].id;
-        chrome.tabs.sendMessage(tabId, { action: 'addLink', url: url }, function(response) {
+        chrome.tabs.sendMessage(tabId, { action: 'addLink', link: linkObj }, function(response) {
           if (response && response.message === 'Link added successfully!') {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = url;
-            a.target = '_blank';
-            a.textContent = url;
-            li.appendChild(a);
-            linksList.appendChild(li);
+            browser.storage.local.get({ links: [] }).then(function(data) {
+              const links = data.links;
+              links.push(linkObj);
+              browser.storage.local.set({ links: links }).then(function() {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = url;
+                a.target = '_blank';
+                a.textContent = url;
+                li.appendChild(a);
+                linksList.appendChild(li);
+              });
+            });
           }
         });
       });
@@ -33,18 +41,16 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Load existing links when the popup opens
-  chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-    const tabId = tabs[0].id;
-    chrome.tabs.sendMessage(tabId, { action: 'getLinks' }, function(response) {
-      response.links.forEach(function(link) {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = link;
-        a.target = '_blank';
-        a.textContent = link;
-        li.appendChild(a);
-        linksList.appendChild(li);
-      });
+  browser.storage.local.get({ links: [] }).then(function(data) {
+    const storedLinks = data.links;
+    storedLinks.forEach(function(linkObj) {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = linkObj.url;
+      a.target = '_blank';
+      a.textContent = linkObj.url;
+      li.appendChild(a);
+      linksList.appendChild(li);
     });
   });
 });

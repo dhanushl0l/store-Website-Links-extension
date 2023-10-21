@@ -1,20 +1,31 @@
 {
     "manifest_version": 2,
-    "name": "Website Links Manager",
+    "name": "Your Extension Name",
     "version": "1.0",
-    "permissions": ["activeTab", "tabs"],
+    "permissions": [
+      "storage",
+      "activeTab"
+    ],
+    "content_scripts": [
+      {
+        "matches": [
+          "<all_urls>"
+        ],
+        "js": ["content.js"]
+      }
+    ],
     "browser_action": {
       "default_popup": "popup.html",
-      "default_icon": "images/icon48.png"
+      "default_icon": {
+        "48": "images/icon48.png"
+      }
     },
     "icons": {
       "48": "images/icon48.png"
     },
-    "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": ["content.js"]
-      }
-    ]
+    "background": {
+      "scripts": ["background.js"],
+      "persistent": false
+    }
   }
   
